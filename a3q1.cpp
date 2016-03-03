@@ -73,7 +73,6 @@ class Board{
 	
 	int n; // n x n grid
 	int numSquares, numLadders, numSnakes;
-	int maxLadderDest;
 	vector<Square*> squareList;
 
 	void addLadder(int bot, int top);
@@ -84,12 +83,12 @@ public:
 	Board(int n, int l, int s);
 	void getLadderInputs();
 	void getSnakeInputs();
-	void printBoard();
+	// void printBoard();
 
 	void runMain();
 };
 
-Board::Board(int n, int l, int s) : n(n), numSquares(n*n), numLadders(l), numSnakes(s), maxLadderDest(0){
+Board::Board(int n, int l, int s) : n(n), numSquares(n*n), numLadders(l), numSnakes(s){
 
 	if (n < 2 || n > 1000) throw string("out of range: 2 <= n <= 1000");
 	if (l < 0 || l > 500000) throw string("out of range: 0 <= l <= 500000");
@@ -112,7 +111,6 @@ void Board::addLadder(int bot, int top){
 			top < 3 || top > numSquares     ||
 			bot >= top) throw string("invalid addLadder: 2 <= b < u <= n^2");
 	squareList[bot-1]->addLadderDest(squareList[top-1]);
-	if (top > maxLadderDest) maxLadderDest = top;
 }
 
 void Board::addSnake(int head, int tail){
@@ -146,34 +144,34 @@ void Board::getSnakeInputs(){
 	}
 }
 
-void Board::printBoard(){
+// void Board::printBoard(){
 	
-	cout << endl;
-	cout << "PRINT BOARD:" << endl;
-	cout << n << " " << numLadders << " " << numSnakes << endl;
+// 	cout << endl;
+// 	cout << "PRINT BOARD:" << endl;
+// 	cout << n << " " << numLadders << " " << numSnakes << endl;
 	
-	for (int i=0; i<numSquares; ++i){
-		cout << endl;
-		cout << "i = " << i << endl;;
-		Square* sq = squareList[i];
-		cout << "sid = " << sq->getSid() << endl;
+// 	for (int i=0; i<numSquares; ++i){
+// 		cout << endl;
+// 		cout << "i = " << i << endl;;
+// 		Square* sq = squareList[i];
+// 		cout << "sid = " << sq->getSid() << endl;
 
-		cout << "next6Squares: ";
-		list<Square*>::iterator it;
-		list<Square*> sqList = sq->getNext6Squares();
-		for (it = sqList.begin(); it != sqList.end(); ++it){
-			Square* nextsq = *it;
-			cout << nextsq->getSid() << " ";
-		}
-		cout << endl;
+// 		cout << "next6Squares: ";
+// 		list<Square*>::iterator it;
+// 		list<Square*> sqList = sq->getNext6Squares();
+// 		for (it = sqList.begin(); it != sqList.end(); ++it){
+// 			Square* nextsq = *it;
+// 			cout << nextsq->getSid() << " ";
+// 		}
+// 		cout << endl;
 
-		int ladderDestId = sq->getLadderDest() == NULL ? 0 : sq->getLadderDest()->getSid();
-		int snakeDestId = sq->getSnakeDest() == NULL ? 0 : sq->getSnakeDest()->getSid();
+// 		int ladderDestId = sq->getLadderDest() == NULL ? 0 : sq->getLadderDest()->getSid();
+// 		int snakeDestId = sq->getSnakeDest() == NULL ? 0 : sq->getSnakeDest()->getSid();
 
-		if (ladderDestId) cout << "ladderDestId = " << ladderDestId << endl;
-		if (snakeDestId) cout << "snakeDestId = " << snakeDestId << endl;
-	}
-}
+// 		if (ladderDestId) cout << "ladderDestId = " << ladderDestId << endl;
+// 		if (snakeDestId) cout << "snakeDestId = " << snakeDestId << endl;
+// 	}
+// }
 
 void Board::runDFS(int s, bool visited[], stack<int> &Stack, int& time, int start[], int finish[]){
 
