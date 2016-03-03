@@ -10,13 +10,11 @@ d3son@uwaterloo.ca
 #include <sstream>
 
 using namespace std;
-// using std::cin;
-// using std::cout;
 
 class Square{
 
 	int s_id;
-	Square* nextSquare;
+	list<Square*> next6Squares;
 	Square* ladderDest;
 	Square* snakeDest;
 
@@ -27,21 +25,18 @@ public:
 	void addSnakeDest(Square* sq);
 
 	int getSid();
-	Square* getNextSquare();
+	list<Square*> const& getNext6Square();
 	Square* getLadderDest();
 	Square* getSnakeDest();
 };
 
-Square::Square(int s_id){
-	
-	this->s_id = s_id;
-	this->nextSquare = NULL;
+Square::Square(int s_id) : s_id(s_id), next6Squares(6){
 	this->ladderDest = NULL;
 	this->snakeDest = NULL;
 }
 
 void Square::addNextSq(Square* sq){
-	this->nextSquare = sq;
+	this->next6Squares.push_back(sq);
 }
 
 void Square::addLadderDest(Square* sq){
@@ -56,8 +51,8 @@ int Square::getSid(){
 	return s_id;
 }
 
-Square* Square::getNextSquare(){
-	return nextSquare;
+list<Square*> const& Square::getNext6Squares(){
+	return next6Squares;
 }
 
 Square* Square::getLadderDest(){
@@ -72,7 +67,7 @@ class Board{
 	
 	int n; // n x n grid
 	int numSquares, numLadders, numSnakes;
-	vector<Square*> squareList;
+	list<Square*> squareList;
 
 	void addLadder(int bot, int top);
 	void addSnake(int head, int tail);
@@ -85,17 +80,11 @@ public:
 	void printBoard();
 };
 
-Board::Board(int n, int l, int s){
+Board::Board(int n, int l, int s) : n(n), numSquares(n*n), numLadders(l), numSnakes(s), squareList(n*n+1){
 
 	if (n < 2 || n > 1000) throw string("out of range: 2 <= n <= 1000");
 	if (l < 0 || l > 500000) throw string("out of range: 0 <= l <= 500000");
 	if (s < 0 || s > 500000) throw string("out of range: 0 <= s <= 500000");
-
-	this->n = n;
-	this->numSquares = n*n;
-	this->numLadders = l;
-	this->numSnakes = s;
-	this->squareList.reserve(numSquares+1);
 
 	this->squareList[1] = new Square(1);
 	for (int i=2; i<=numSquares; ++i){
