@@ -78,7 +78,7 @@ class Board{
 	void addLadder(int bot, int top);
 	void addSnake(int head, int tail);
 
-	void runDFS(int s, bool visited[], stack<int> &Stack, int& time, int start[], int finish[]);
+	void runDFS(int s, bool visited[], stack<int> &Stack/*, int& time, int start[], int finish[]*/);
 public:
 	Board(int n, int l, int s);
 	void getLadderInputs();
@@ -173,7 +173,7 @@ void Board::getSnakeInputs(){
 // 	}
 // }
 
-void Board::runDFS(int s, bool visited[], stack<int> &Stack, int& time, int start[], int finish[]){
+void Board::runDFS(int s, bool visited[], stack<int> &Stack/*, int& time, int start[], int finish[]*/){
 
 	// cout << "runDFS:" << endl;
 
@@ -181,8 +181,8 @@ void Board::runDFS(int s, bool visited[], stack<int> &Stack, int& time, int star
 	int nextSid;
 
 	Square* sq = squareList[s];
-	start[s] = time;
-	time++;
+	// start[s] = time;
+	// time++;
 
 	if (sq->getLadderDest() != NULL){
 		nextSq = sq->getLadderDest();
@@ -234,19 +234,19 @@ void Board::runMain(){
 	int s = 0; // sid=1
 	int time = 1;
 	stack<int> Stack;
-	int dist[numSquares];
+	// int dist[numSquares];
 	bool *visited = new bool[numSquares];
-	int *start = new int[numSquares];
-	int *finish = new int[numSquares];
+	// int *start = new int[numSquares];
+	// int *finish = new int[numSquares];
 	for (int i=0; i<numSquares; ++i){
 		visited[i] = false;
-		dist[i] = NINF;
+		// dist[i] = NINF;
 	}
-	dist[s] = 0;
+	// dist[s] = 0;
 
 	// Run DFS
 	visited[s] = true;
-	runDFS(s, visited, Stack, time, start, finish);
+	runDFS(s, visited, Stack/*, time, start, finish*/);
 
 	// for (int i=0; i<numSquares; ++i){
 	// 	cout << i+1 << " Visited: ";
