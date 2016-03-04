@@ -198,13 +198,12 @@ void Board::runMain(){
 	visited[s] = true;
 	DFSStack.push(s);
 
-	// Run DFS
+	// Run DFS recursively
 	runDFS(s, visited, topologyOrderStack);
 
-	int retval;
+	// update boolean variables and dist array
 	int prevTopId = 0;
 	int currTopId = 0;
-	int stackSize = topologyOrderStack.size();
 	bool isDAG = true;
 	bool reachable = true;
 
@@ -252,6 +251,7 @@ void Board::runMain(){
 		}
 	}
 
+	// Output results
 	if (!reachable){
 		cout << "impossible" << endl;
 	} else if (!isDAG){
