@@ -10,6 +10,7 @@ d3son@uwaterloo.ca
 #include <stack>
 #include <string>
 #include <sstream>
+#include <algorithm>
 #include <limits.h>
 
 #define NINF INT_MIN
@@ -74,6 +75,7 @@ class Board{
 	int n; // n x n grid
 	int numSquares, numLadders, numSnakes;
 	vector<Square*> squareList;
+	int maxLadderDest;
 
 	void addLadder(int bot, int top);
 	void addSnake(int head, int tail);
@@ -88,7 +90,7 @@ public:
 	void runMain();
 };
 
-Board::Board(int n, int l, int s) : n(n), numSquares(n*n), numLadders(l), numSnakes(s){
+Board::Board(int n, int l, int s) : n(n), numSquares(n*n), numLadders(l), numSnakes(s), maxLadderDest(0){
 
 	if (n < 2 || n > 1000) throw string("out of range: 2 <= n <= 1000");
 	if (l < 0 || l > 500000) throw string("out of range: 0 <= l <= 500000");
@@ -111,6 +113,7 @@ void Board::addLadder(int bot, int top){
 			top < 3 || top > numSquares     ||
 			bot >= top) throw string("invalid addLadder: 2 <= b < u <= n^2");
 	squareList[bot-1]->addLadderDest(squareList[top-1]);
+	if (top > maxLadderDest) maxLadderDest = top;
 }
 
 void Board::addSnake(int head, int tail){
@@ -173,7 +176,7 @@ void Board::getSnakeInputs(){
 // 	}
 // }
 
-void Board::runDFS(int s, bool visited[], stack<int> &Stack/*, int& time, int start[], int finish[]*/){
+void Board::runDFS(int s, bool visited[], stack<int> &topologyOrderStack/*, int& time, int start[], int finish[]*/){
 
 	// cout << "runDFS:" << endl;
 
@@ -192,7 +195,7 @@ void Board::runDFS(int s, bool visited[], stack<int> &Stack/*, int& time, int st
 		if (!visited[nextSid-1]){
 			// cout << "nextSid was not visited" << endl;
 			visited[nextSid-1] = true;
-			runDFS(nextSid-1, visited, Stack, time, start, finish);
+			runDFS(nextSid-1, visited, topologyOrderStack/*, time, start, finish*/);
 		}
 	} else if (sq->getSnakeDest() != NULL){
 		nextSq = sq->getSnakeDest();
@@ -202,9 +205,8 @@ void Board::runDFS(int s, bool visited[], stack<int> &Stack/*, int& time, int st
 		if (!visited[nextSid-1]){
 			// cout << "nextSid was not visited" << endl;
 			visited[nextSid-1] = true;
-			runDFS(nextSid-1, visited, Stack, time, start, finish);
-		}
-		Stack.push(s);
+			runDFS(nextSid-1, visited, topologyOrderStack/*, time, start, finish*/);
+		}		
 	} else {
 		list<Square*>::iterator it;
 		list<Square*> next6Squares = sq->getNext6Squares();
@@ -215,17 +217,14 @@ void Board::runDFS(int s, bool visited[], stack<int> &Stack/*, int& time, int st
 			if (!visited[nextSid-1]){
 				// cout << "nextSid was not visited" << endl;
 				visited[nextSid-1] = true;
-				runDFS(nextSid-1, visited, Stack, time, start, finish);
+				runDFS(nextSid-1, visited, topologyOrderStack/*, time, start, finish*/);
 			}
 		}
-		// finish[s] = time; 
-		// time++;
-		Stack.push(s);
 	}
 
 	// finish[s] = time; 
 	// time++;
-	// Stack.push(s);
+	topologyOrderStack.push(s);
 }
 
 void Board::runMain(){
@@ -233,21 +232,77 @@ void Board::runMain(){
 	// Initialization
 	int s = 0; // sid=1
 	int time = 1;
-	stack<int> Stack;
-	// int dist[numSquares];
-	bool *visited = new bool[numSquares];
-	// int *start = new int[numSquares];
-	// int *finish = new int[numSquares];
+	stack<int> DFSStack;
+	stack<int> topologyOrderStack;
+	int dist[numSquares];
+	bool visited[numSquares];
 	for (int i=0; i<numSquares; ++i){
 		visited[i] = false;
-		// dist[i] = NINF;
+		dist[i] = NINF;
 	}
-	// dist[s] = 0;
+	dist[s] = 0;
+
+	visited[s] = true;
+	DFSStack.push(s);
 
 	// Run DFS
-	visited[s] = true;
-	runDFS(s, visited, Stack/*, time, start, finish*/);
+	runDFS(s, visited, topologyOrderStack);
+	// while (!DFSStack.empty()){
 
+	// 	// prestate
+	// 	Square* nextSq;
+	// 	int nextSid;
+
+	// 	int u = DFSStack.top();
+	// 	// cout << "popped: " << u+1 << endl;
+
+
+	// 	Square* sq = squareList[u];
+
+	// 	// running
+	// 	if (sq->getLadderDest() != NULL){
+	// 		nextSq = sq->getLadderDest();
+	// 		nextSid = nextSq->getSid();
+	// 		cout << "On the Ladder:" << endl;
+	// 		cout << "s: " << u+1 << ", nextSid: " << nextSid << endl;
+	// 		if (!visited[nextSid-1]){
+	// 			cout << "nextSid was not visited" << endl;
+	// 			visited[nextSid-1] = true;
+	// 			DFSStack.push(nextSid-1);
+	// 		}
+	// 	} else if (sq->getSnakeDest() != NULL){
+	// 		nextSq = sq->getSnakeDest();
+	// 		nextSid = nextSq->getSid();
+	// 		cout << "On the Snake:" << endl;
+	// 		cout << "s: " << u+1 << ", nextSid: " << nextSid << endl;
+	// 		if (!visited[nextSid-1]){
+	// 			cout << "nextSid was not visited" << endl;
+	// 			visited[nextSid-1] = true;
+	// 			DFSStack.push(nextSid-1);
+	// 		}		
+	// 	} else {
+	// 		list<Square*>::iterator it;
+	// 		list<Square*> next6Squares = sq->getNext6Squares();
+	// 		for (it = next6Squares.begin(); it != next6Squares.end(); ++it){
+	// 			nextSq = *it;
+	// 			nextSid = nextSq->getSid();
+	// 			cout << "s: " << u+1 << ", nextSid: " << nextSid << endl;
+	// 			if (!visited[nextSid-1]){
+	// 				cout << "nextSid was not visited" << endl;
+	// 				visited[nextSid-1] = true;
+	// 				DFSStack.push(nextSid-1);
+	// 			}
+	// 		}
+	// 	}
+
+	// 	// poststate
+	// 	u = DFSStack.top();
+	// 	DFSStack.pop();
+	// 	cout << "popped and pushed to topOrder: " << u+1 << endl;
+	// 	topologyOrderStack.push(u);
+	// }
+
+	// Visited Array Check
 	// for (int i=0; i<numSquares; ++i){
 	// 	cout << i+1 << " Visited: ";
 	// 	string result = visited[i] == true ? "true" : "false";
@@ -257,49 +312,86 @@ void Board::runMain(){
 	int retval;
 	int prevTopId = 0;
 	int currTopId = 0;
-	int stackSize = Stack.size();
+	int stackSize = topologyOrderStack.size();
+	bool isDAG = true;
+	bool reachable = true;
 
 	if (visited[numSquares-1] == false){
 		// not reachable
-		retval = 0; //"impossible";
+		reachable = false; //"impossible";
 	} else {
-		while (!Stack.empty()){
-			
-			prevTopId = currTopId;
-			currTopId = Stack.top()+1;
-			// cout << "Popped sid from Stack: " << currTopId << endl;
-			Stack.pop();
+		while (!topologyOrderStack.empty()){
 
-			if (currTopId > prevTopId){
-				// acyclic
-				retval = stackSize - 1; // largest possible number of steps
-			} else {
-				// cyclic
-				retval = NINF; // "infinity"
+			prevTopId = currTopId;
+			currTopId = topologyOrderStack.top() + 1;
+			// cout << "Popped sid from Stack: " << currTopId << endl;
+			topologyOrderStack.pop();
+
+			if (dist[currTopId-1] != NINF){
+
+				Square* nextSq;
+				int nextSid;
+
+				Square* sq = squareList[currTopId-1];
+
+				if (sq->getLadderDest() != NULL){
+					nextSq = sq->getLadderDest();
+					nextSid = nextSq->getSid();
+					if (dist[nextSid-1] < dist[currTopId-1]){
+						// cout << "ON THE LADDER:" << endl;
+						// cout << "dist[" << nextSid-1 << "] = " << dist[nextSid-1] << endl;
+						// cout << "dist[" << currTopId-1 << "] = " << dist[currTopId-1]  << endl;
+						// cout << "hence, dist[" << nextSid-1 << "] = " << dist[currTopId-1] << endl; 
+						dist[nextSid-1] = dist[currTopId-1];
+					}
+				} else if (sq->getSnakeDest() != NULL){
+					nextSq = sq->getSnakeDest();
+					nextSid = nextSq->getSid();
+					// if dist[tail] < dist[head]
+					if (dist[nextSid-1] < dist[currTopId-1]){
+						// cout << "ON THE SNAKE:" << endl;
+						// cout << "dist[" << nextSid-1 << "] = " << dist[nextSid-1] << endl;
+						// cout << "dist[" << currTopId-1 << "] = " << dist[currTopId-1] << endl;
+						// cout << "hence, dist[" << nextSid-1 << "] = " << dist[currTopId-1] << endl; 
+						dist[nextSid-1] = dist[currTopId-1];
+						isDAG = false;
+					}
+				} else {
+					list<Square*> next6Squares = sq->getNext6Squares();
+					list<Square*>::iterator it;
+					for (it = next6Squares.begin(); it != next6Squares.end(); ++it){
+						nextSq = *it;
+						nextSid = nextSq->getSid();
+						if (dist[nextSid-1] < dist[currTopId-1] + 1){
+							// cout << "dist[" << nextSid-1 << "] = " << dist[nextSid-1] << endl;
+							// cout << "dist[" << currTopId-1 << "] + 1 = " << dist[currTopId-1] + 1 << endl;
+							// cout << "hence, dist[" << nextSid-1 << "] = " << dist[currTopId-1] +1 << endl; 
+							// cout << "dist[" << nextSid-1 << "] < dist[" << currTopId-1 << "] + 1" << endl; 
+							dist[nextSid-1] = dist[currTopId-1] + 1;
+							
+						}
+					}
+				}
 			}
 		}
 	}
 
-
-
-	
-
-	if (retval > 0){
-		cout << retval << endl;
-	} else {
-		if (retval == 0){
-			cout << "impossible" << endl;
-		} else if (retval == NINF){
-			cout << "infinity" << endl;
-		}
-	}
-
+	// Dist Array Check
 	// for (int i=0; i<numSquares; ++i){
-	// 	cout << "sid " << i+1 << "finish time: " << finish[i] << endl;;
+	// 	cout << "dist[" << i << "] = " << dist[i] << endl;
 	// }
 
-
-
+	if (!reachable){
+		cout << "impossible" << endl;
+	} else if (!isDAG){
+		if (*std::max_element(dist,dist+numSquares) == dist[numSquares-1]){
+			cout << "infinity" << endl;
+		} else {
+			cout << dist[numSquares-1] << endl;
+		}
+	} else {
+		cout << dist[numSquares-1] << endl;
+	}
 }
 
 int main(){
